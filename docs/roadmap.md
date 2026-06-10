@@ -1,14 +1,26 @@
-# Vector Citadel Roadmap
+# Feuille de route Vector Citadel
 
-## Near term
+## Q1 - Fondation
+- Index vectoriel fonctionnel
+- Pipeline d'ingestion Python
+- Endpoints REST de base
+- Dashboard frontend minimal
+- Docker Compose opérationnel
 
-- index schema
-- ingestion flow
-- retrieval API model
-- diagnostics baseline
+## Q2 - Hybrid & Tracing  
+- Recherche hybride avec fusion scores
+- Filtres métadonnées dynamiques
+- Tracing des requêtes (waterfall)
+- Métriques temps réel
 
-## Mid term
+## Q3 - Production
+- TTL et gestion de fraîcheur
+- Persistence PostgreSQL/pgvector
+- Tests d'intégration
+- Benchmark complet
 
-- freshness-aware ranking
-- hybrid search tuning
-- evaluation workloads
+## Q4 - Scale
+- Sharding horizontal
+- Cache distribué Redis
+- Monitoring Prometheus
+- Production-ready

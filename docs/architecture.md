@@ -1,20 +1,31 @@
-# Vector Citadel Architecture
+# Architecture Vector Citadel
 
-## Overview
+## Vue d'ensemble
 
-Vector Citadel is a retrieval infrastructure project organized around embedding ingestion, index maintenance, hybrid retrieval, and diagnostics for query behavior.
+Vector Citadel est une infrastructure de recherche vectorielle enterprise organisée autour de l'ingestion d'embeddings, de la maintenance d'index, de la recherche hybride et des diagnostics de requêtes.
 
-## Core subsystems
+## Sous-systèmes core
 
-- embedding ingestion pipeline
-- vector and metadata index layer
-- hybrid retrieval engine
-- freshness and update management
-- query tracing and diagnostics
+1. **Pipeline d'ingestion** - Embedding par lots, validation, transformation
+2. **Couche d'index** - DashMap + HNSW pour recherche approximative
+3. **Moteur de recherche hybride** - Fusion vectoriel + filtres métadonnées
+4. **Gestion de fraîcheur** - TTL, marquage temporel, GC automatique
+5. **Diagnostics** - Tracing des requêtes, explicabilité du scoring
 
-## Design priorities
+## Architecture technique
 
-- retrieval quality visibility
-- explicit freshness handling
-- hybrid retrieval control
-- operational explainability
+```mermaid
+graph TD
+    A[Frontend React :3000] -->|REST API| B[API Rust :8080]
+    C[Python Ingestion] -->|HTTP POST| B
+    B --> D[Vector Index<br/>DashMap + HNSW]
+    B --> E[Query Tracing]
+    B --> F[TTL Manager]
+```
+
+## Patterns de conception
+
+- **Arc<DashMap>** : Partage concurrent sans lock
+- **Hybrid Scoring** : `score = α × vector + (1-α) × metadata`
+- **Tracing par étape** : Latence granularisée
+- **GC proactive** : Nettoyage automatique des TTL expirés
