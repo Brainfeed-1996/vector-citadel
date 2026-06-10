@@ -1,8 +1,33 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Vector Citadel - Dark Theme Styles */
+body {
+  background: linear-gradient(135deg, #0a0a0f 0%, #0f0f1a 100%);
+  min-height: 100vh;
+}
 
-/* Custom styles for Vector Citadel */
-.chart-container {
-  font-family: system-ui, -apple-system, sans-serif;
+/* Animation pour les cards */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #111827;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
 }
