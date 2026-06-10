@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vector-citadel-ingestion"
+version = "0.1.0"
+description = "Ingestion pipeline for Vector Citadel"
+requires-python = ">=3.10"
+dependencies = [
+    "requests>=2.31.0",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    "tqdm>=4.65.0",
+]
+
+[project.scripts]
+vector-ingest = "ingestion.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
