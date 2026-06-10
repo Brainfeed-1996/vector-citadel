@@ -2,7 +2,7 @@ use std::sync::Arc;
 use dashmap::DashMap;
 use uuid::Uuid;
 use chrono::Utc;
-use crate::models::{Vector, UpsertVector, SearchQuery, SearchResult, QueryTrace};
+use crate::models::{Vector, UpsertVector, SearchQuery, SearchResult, QueryTrace, ScoringBreakdown};
 
 pub struct VectorIndexService {
     index: Arc<DashMap<Uuid, Vector>>,
@@ -67,6 +67,13 @@ impl VectorIndexService {
                 total_latency_ms: 6,
             };
             
+            let scoring_breakdown = ScoringBreakdown {
+                vector_score,
+                metadata_score,
+                final_score,
+                explanation: format!("alpha={hybrid_alpha}: vector={vector_score:.3}, meta={metadata_score:.3}"),
+            };
+            
             results.push(SearchResult {
                 id: vector.id,
                 score: final_score,
@@ -74,6 +81,7 @@ impl VectorIndexService {
                 metadata: vector.metadata.clone(),
                 trace: Some(trace),
                 freshness_score: Some(freshness_score),
+                scoring_breakdown: Some(scoring_breakdown),
             });
         }
         

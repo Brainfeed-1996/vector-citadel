@@ -22,6 +22,12 @@ interface SearchResult {
     steps: Array<{ name: string; latency_ms: number; details: unknown }>
     total_latency_ms: number
   }
+  scoring_breakdown?: {
+    vector_score: number
+    metadata_score: number
+    final_score: number
+    explanation: string
+  }
 }
 
 interface Metrics {
@@ -167,7 +173,12 @@ function App() {
                     <p>Catégorie: {result.metadata.category || 'N/A'}</p>
                     <p>Source: {result.metadata.source_id || 'N/A'}</p>
                     <p>Tags: {result.metadata.tags?.join(', ') || 'Aucun'}</p>
-                    <p>Fraîcheur: {result.freshness_score ? `(${result.freshness_score! * 100}%)` : 'N/A'}</p>
+                    <p>Fraîcheur: {result.freshness_score ? `(${Math.round(result.freshness_score! * 100)}%)` : 'N/A'}</p>
+                    {result.scoring_breakdown && (
+                      <p className="text-xs text-purple-300">
+                        {result.scoring_breakdown!.explanation}
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}

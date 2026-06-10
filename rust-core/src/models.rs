@@ -52,6 +52,7 @@ pub struct SearchResult {
     pub metadata: Metadata,
     pub trace: Option<QueryTrace>,
     pub freshness_score: Option<f32>,
+    pub scoring_breakdown: Option<ScoringBreakdown>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
