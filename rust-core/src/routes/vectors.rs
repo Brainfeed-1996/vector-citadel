@@ -20,3 +20,11 @@ pub async fn search(
     let results = service.search(payload.into_inner());
     HttpResponse::Ok().json(results)
 }
+
+#[post("/admin/gc")]
+pub async fn garbage_collect(
+    service: web::Data<Arc<VectorIndexService>>,
+) -> impl Responder {
+    let removed = service.remove_stale(86400);
+    HttpResponse::Ok().json(serde_json::json!({ "removed": removed }))
+}

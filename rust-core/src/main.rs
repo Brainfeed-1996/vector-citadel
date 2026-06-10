@@ -24,6 +24,7 @@ async fn main() -> std::io::Result<()> {
             .service(routes::health::health_check)
             .service(routes::vectors::upsert)
             .service(routes::vectors::search)
+            .service(routes::vectors::garbage_collect)
     })
     .bind(("0.0.0.0", 8080))?
     .run()

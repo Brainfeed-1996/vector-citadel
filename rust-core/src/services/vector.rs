@@ -22,9 +22,10 @@ impl VectorIndexService {
         let v = Vector {
             id,
             values: vector.values.clone(),
-            metadata: vector.metadata.unwrap_or_default(),
+            metadata: vector.metadata.clone().unwrap_or_default(),
             created_at: now,
             updated_at: now,
+            ttl: None,
         };
         
         self.index.insert(id, v.clone());
@@ -47,6 +48,7 @@ impl VectorIndexService {
             
             let vector_score = self.cosine_similarity(&query.vector, &vector.values);
             let metadata_score = self.compute_metadata_score(&vector.metadata);
+            let freshness_score = self.compute_freshness(&vector);
             let final_score = hybrid_alpha * vector_score + (1.0 - hybrid_alpha) * metadata_score;
             
             let trace = QueryTrace {
@@ -71,6 +73,7 @@ impl VectorIndexService {
                 vector: vector.values.clone(),
                 metadata: vector.metadata.clone(),
                 trace: Some(trace),
+                freshness_score: Some(freshness_score),
             });
         }
         
@@ -113,6 +116,29 @@ impl VectorIndexService {
         score += (metadata.tags.len() as f32) * 0.1;
         
         score.min(1.0)
+    }
+
+    fn compute_freshness(&self, vector: &Vector) -> f32 {
+        let age_seconds = (Utc::now() - vector.created_at).num_seconds().min(86400) as f32;
+        let max_age: f32 = 86400.0;
+        (1.0 - (age_seconds / max_age)).max(0.0)
+    }
+
+    pub fn remove_stale(&self, max_age_seconds: i64) -> usize {
+        let now = Utc::now();
+        let mut count = 0;
+        
+        self.index.retain(|_, v| {
+            let age = (now - v.updated_at).num_seconds();
+            if age > max_age_seconds {
+                count += 1;
+                false
+            } else {
+                true
+            }
+        });
+        
+        count
     }
 
     fn cosine_similarity(&self, a: &[f32], b: &[f32]) -> f32 {

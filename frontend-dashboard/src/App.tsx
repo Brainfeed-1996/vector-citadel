@@ -12,6 +12,7 @@ interface SearchFilters {
 interface SearchResult {
   id: string
   score: number
+  freshness_score?: number
   metadata: {
     source_id?: string
     category?: string
@@ -166,6 +167,7 @@ function App() {
                     <p>Catégorie: {result.metadata.category || 'N/A'}</p>
                     <p>Source: {result.metadata.source_id || 'N/A'}</p>
                     <p>Tags: {result.metadata.tags?.join(', ') || 'Aucun'}</p>
+                    <p>Fraîcheur: {result.freshness_score ? `(${result.freshness_score! * 100}%)` : 'N/A'}</p>
                   </div>
                 </div>
               ))}

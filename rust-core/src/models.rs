@@ -19,6 +19,7 @@ pub struct Vector {
     pub metadata: Metadata,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    pub ttl: Option<i64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -50,6 +51,7 @@ pub struct SearchResult {
     pub vector: Vec<f32>,
     pub metadata: Metadata,
     pub trace: Option<QueryTrace>,
+    pub freshness_score: Option<f32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
