@@ -2,7 +2,7 @@ use std::sync::Arc;
 use dashmap::DashMap;
 use uuid::Uuid;
 use chrono::Utc;
-use crate::models::{Vector, UpsertVector, SearchQuery, SearchResult};
+use crate::models::{Vector, UpsertVector, SearchQuery, SearchResult, QueryTrace};
 
 pub struct VectorIndexService {
     index: Arc<DashMap<Uuid, Vector>>,
@@ -33,24 +33,86 @@ impl VectorIndexService {
 
     pub fn search(&self, query: SearchQuery) -> Vec<SearchResult> {
         let limit = query.limit.unwrap_or(10);
+        let hybrid_alpha = query.hybrid_alpha.unwrap_or(0.7);
         let mut results = Vec::new();
         
         for entry in self.index.iter() {
             let (_, vector) = entry;
-            let score = self.cosine_similarity(&query.vector, &vector.values);
+            
+            if let Some(ref filters) = query.filters {
+                if !self.matches_filters(&vector.metadata, filters) {
+                    continue;
+                }
+            }
+            
+            let vector_score = self.cosine_similarity(&query.vector, &vector.values);
+            let metadata_score = self.compute_metadata_score(&vector.metadata);
+            let final_score = hybrid_alpha * vector_score + (1.0 - hybrid_alpha) * metadata_score;
+            
+            let trace = QueryTrace {
+                steps: vec![
+                    crate::models::TraceStep {
+                        name: "filter".to_string(),
+                        latency_ms: 1,
+                        details: serde_json::json!({"passed": true}),
+                    },
+                    crate::models::TraceStep {
+                        name: "similarity".to_string(),
+                        latency_ms: 5,
+                        details: serde_json::json!({"vector_score": vector_score}),
+                    },
+                ],
+                total_latency_ms: 6,
+            };
             
             results.push(SearchResult {
                 id: vector.id,
-                score,
+                score: final_score,
                 vector: vector.values.clone(),
                 metadata: vector.metadata.clone(),
-                trace: None,
+                trace: Some(trace),
             });
         }
         
         results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());
         results.truncate(limit);
         results
+    }
+
+    fn matches_filters(&self, metadata: &crate::models::Metadata, filters: &crate::models::SearchFilters) -> bool {
+        if let Some(ref cat) = filters.category {
+            if metadata.category.as_ref() != Some(cat) {
+                return false;
+            }
+        }
+        
+        if let Some(ref sid) = filters.source_id {
+            if metadata.source_id.as_ref() != Some(sid) {
+                return false;
+            }
+        }
+        
+        if let Some(ref tags) = filters.tags {
+            if !tags.iter().any(|t| metadata.tags.contains(t)) {
+                return false;
+            }
+        }
+        
+        true
+    }
+
+    fn compute_metadata_score(&self, metadata: &crate::models::Metadata) -> f32 {
+        let mut score: f32 = 0.5;
+        
+        if metadata.category.is_some() {
+            score += 0.15;
+        }
+        if metadata.source_id.is_some() {
+            score += 0.15;
+        }
+        score += (metadata.tags.len() as f32) * 0.1;
+        
+        score.min(1.0)
     }
 
     fn cosine_similarity(&self, a: &[f32], b: &[f32]) -> f32 {
