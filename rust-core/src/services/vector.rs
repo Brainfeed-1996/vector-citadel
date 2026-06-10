@@ -1,25 +1,21 @@
 use std::sync::Arc;
 use dashmap::DashMap;
-use hnsw::Hnsw;
-use serde_json;
 use uuid::Uuid;
 use chrono::Utc;
-use crate::models::{Vector, UpsertVector, SearchQuery, SearchResult, QueryTrace, TraceStep, ScoringBreakdown, Metadata};
+use crate::models::{Vector, UpsertVector, SearchQuery, SearchResult};
 
 pub struct VectorIndexService {
     index: Arc<DashMap<Uuid, Vector>>,
-    hnsw_index: Arc<Hnsw>,
 }
 
 impl VectorIndexService {
     pub fn new() -> Self {
         Self {
             index: Arc::new(DashMap::new()),
-            hnsw_index: Arc::new(Hnsw::new(1536, 10, 256)),
         }
     }
 
-    pub fn upsert(&self, vector: UpsertVector) -> Result<Vector, String> {
+    pub fn upsert(&self, vector: UpsertVector) -> Vector {
         let now = Utc::now();
         let id = vector.id.unwrap_or_else(|| Uuid::new_v4());
         
@@ -32,14 +28,14 @@ impl VectorIndexService {
         };
         
         self.index.insert(id, v.clone());
-        Ok(v)
+        v
     }
 
     pub fn search(&self, query: SearchQuery) -> Vec<SearchResult> {
         let limit = query.limit.unwrap_or(10);
         let mut results = Vec::new();
         
-        for entry in self.index.iter().take(limit) {
+        for entry in self.index.iter() {
             let (_, vector) = entry;
             let score = self.cosine_similarity(&query.vector, &vector.values);
             

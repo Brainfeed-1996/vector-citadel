@@ -1,6 +1,6 @@
 use actix_web::{post, web, HttpResponse, Responder};
 use std::sync::Arc;
-use crate::models::{UpsertVector, SearchQuery, SearchResult, Vector};
+use crate::models::{UpsertVector, SearchQuery};
 use crate::services::VectorIndexService;
 
 #[post("/vectors/upsert")]
@@ -8,10 +8,8 @@ pub async fn upsert(
     service: web::Data<Arc<VectorIndexService>>,
     payload: web::Json<UpsertVector>,
 ) -> impl Responder {
-    match service.upsert(payload.into_inner()) {
-        Ok(vector) => HttpResponse::Ok().json(vector),
-        Err(e) => HttpResponse::BadRequest().json(serde_json::json!({ "error": e })),
-    }
+    let vector = service.upsert(payload.into_inner());
+    HttpResponse::Ok().json(vector)
 }
 
 #[post("/vectors/search")]
