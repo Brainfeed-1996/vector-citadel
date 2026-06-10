@@ -95,205 +95,209 @@ function App() {
     recall: metrics.recall + Math.random() * 0.05 - 0.025,
   }))
 
+  const containerStyle = {
+    minHeight: '100vh',
+    background: 'linear-gradient(135deg, #0a0a0f 0%, #0f0f1a 50%, #0a0a0f 100%)',
+    color: '#e5e7eb',
+    padding: '24px',
+    maxWidth: '1152px',
+    margin: '0 auto',
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
-      <div className="absolute inset-0 bg-grid-gray-800/20"></div>
-      
-      <header className="relative border-b border-gray-800/50 backdrop-blur-sm bg-gray-900/30 p-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <Database className="h-8 w-8 text-purple-400" />
-            Vector Citadel Dashboard
-          </h1>
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            Live
-          </div>
+    <div style={containerStyle}>
+      <header style={{ 
+        borderBottom: '1px solid #1f2937', 
+        padding: '24px 0', 
+        marginBottom: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <h1 style={{ 
+          fontSize: '30px', 
+          fontWeight: 'bold', 
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px'
+        }}>
+          <Database style={{ width: '32px', height: '32px', color: '#a855f7' }} />
+          Vector Citadel Dashboard
+        </h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#9ca3af' }}>
+          <div style={{ 
+            width: '8px', 
+            height: '8px', 
+            backgroundColor: '#4ade80', 
+            borderRadius: '50%',
+            animation: 'pulse 2s infinite'
+          }}></div>
+          Live
         </div>
       </header>
 
-      <main className="relative p-6 max-w-7xl mx-auto space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <MetricCard icon={<Zap />} label="Latence" value={`${metrics.latency.toFixed(1)}ms`} color="text-cyan-400" />
-          <MetricCard icon={<BarChart3 />} label="Rappel" value={`${(metrics.recall * 100).toFixed(1)}%`} color="text-emerald-400" />
-          <MetricCard icon={<Clock />} label="Fraîcheur" value={`${(metrics.freshness * 100).toFixed(1)}%`} color="text-amber-400" />
-          <MetricCard icon={<Activity />} label="Vectors" value={metrics.total_vectors.toString()} color="text-violet-400" />
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+        <MetricCard icon={<Zap />} label="Latence" value={`${metrics.latency.toFixed(1)}ms`} color="#22d3ee" />
+        <MetricCard icon={<BarChart3 />} label="Rappel" value={`${(metrics.recall * 100).toFixed(1)}%`} color="#34d399" />
+        <MetricCard icon={<Clock />} label="Fraîcheur" value={`${(metrics.freshness * 100).toFixed(1)}%`} color="#fbbf24" />
+        <MetricCard icon={<Activity />} label="Vectors" value={metrics.total_vectors.toString()} color="#a78bfa" />
+      </div>
 
-        <div className="bg-gray-900/50 backdrop-blur rounded-xl p-6 border border-gray-800/50">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white">
-            <Search className="h-5 w-5 text-purple-400" />
-            Recherche Hybride Vectorielle
-          </h2>
+      <div style={{ 
+        backgroundColor: 'rgba(17, 24, 39, 0.5)', 
+        borderRadius: '12px', 
+        padding: '24px', 
+        border: '1px solid #1f2937',
+        marginBottom: '24px'
+      }}>
+        <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Search style={{ width: '20px', height: '20px', color: '#a855f7' }} />
+          Recherche Hybride
+        </h2>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <input
+            type="text"
+            placeholder="Entrez votre requête..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            style={{ 
+              width: '100%',
+              padding: '12px 16px',
+              backgroundColor: '#1f2937',
+              border: '1px solid #374151',
+              borderRadius: '8px',
+              color: 'white',
+            }}
+          />
           
-          <div className="space-y-4">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Entrez votre requête textuelle..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:outline-none text-white placeholder-gray-500 transition-all"
-              />
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <input
-                type="text"
-                placeholder="Filtrer par catégorie"
-                value={filters.category}
-                onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                className="px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500"
-              />
-              <input
-                type="text"
-                placeholder="Tags (séparés par virgule)"
-                value={filters.tags.join(', ')}
-                onChange={(e) => setFilters({ ...filters, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })}
-                className="px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500"
-              />
-              <input
-                type="text"
-                placeholder="Source ID"
-                value={filters.source_id}
-                onChange={(e) => setFilters({ ...filters, source_id: e.target.value })}
-                className="px-3 py-2 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-500"
-              />
-            </div>
-
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-sm text-gray-300">
-                <span>Alpha:</span>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="1" 
-                  step="0.1" 
-                  defaultValue="0.7"
-                  className="w-32"
-                />
-                <span>0.7</span>
-              </label>
-              
-              <button
-                onClick={handleSearch}
-                disabled={loading || !query.trim()}
-                className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 rounded-lg font-medium transition-all flex items-center gap-2"
-              >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                {loading ? 'Recherche...' : 'Rechercher'}
-              </button>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+            <input
+              type="text"
+              placeholder="Catégorie"
+              value={filters.category}
+              onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+              style={{ padding: '8px 12px', backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: 'white' }}
+            />
+            <input
+              type="text"
+              placeholder="Tags"
+              value={filters.tags.join(', ')}
+              onChange={(e) => setFilters({ ...filters, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })}
+              style={{ padding: '8px 12px', backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: 'white' }}
+            />
+            <input
+              type="text"
+              placeholder="Source ID"
+              value={filters.source_id}
+              onChange={(e) => setFilters({ ...filters, source_id: e.target.value })}
+              style={{ padding: '8px 12px', backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '8px', color: 'white' }}
+            />
           </div>
-        </div>
 
-        {results.length > 0 && (
-          <div className="bg-gray-900/50 backdrop-blur rounded-xl p-6 border border-gray-800/50">
-            <h2 className="text-xl font-semibold mb-4 text-white">
-              Résultats ({results.length})
-            </h2>
-            <div className="space-y-3">
-              {results.map((result, idx) => (
-                <div key={result.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/50 hover:border-purple-500/30 transition-all">
-                  <div className="flex justify-between items-start mb-3">
-                    <span className="font-mono text-sm text-purple-300">
-                      #{idx + 1} {result.id.substring(0, 8)}...
-                    </span>
-                    <div className="text-right">
-                      <div className="text-emerald-400 font-bold text-lg">{result.score.toFixed(4)}</div>
-                      <div className="text-xs text-gray-500">score</div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                    <div>
-                      <span className="text-gray-500">Catégorie:</span>
-                      <span className="ml-2 text-white">{result.metadata.category || 'N/A'}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Source:</span>
-                      <span className="ml-2 text-white">{result.metadata.source_id || 'N/A'}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Tags:</span>
-                      <span className="ml-2 text-white">{result.metadata.tags?.join(', ') || 'Aucun'}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Fraîcheur:</span>
-                      <span className="ml-2 text-amber-400">
-                        {result.freshness_score ? `${Math.round(result.freshness_score! * 100)}%` : 'N/A'}
-                      </span>
-                    </div>
-                  </div>
+          <button
+            onClick={handleSearch}
+            disabled={loading}
+            style={{ 
+              padding: '12px 24px',
+              backgroundColor: loading ? '#374151' : '#7c3aed',
+              borderRadius: '8px',
+              color: 'white',
+              fontWeight: '500',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              border: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            {loading ? <Loader2 style={{ width: '16px', height: '16px', animation: 'spin 1s linear infinite' }} /> : null}
+            {loading ? 'Recherche...' : 'Rechercher'}
+          </button>
+        </div>
+      </div>
+
+      {results.length > 0 && (
+        <div style={{ 
+          backgroundColor: 'rgba(17, 24, 39, 0.5)', 
+          borderRadius: '12px', 
+          padding: '24px', 
+          border: '1px solid #1f2937',
+          marginBottom: '24px'
+        }}>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>
+            Résultats ({results.length})
+          </h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {results.map((result, idx) => (
+              <div key={result.id} style={{ 
+                backgroundColor: '#1f2937', 
+                borderRadius: '8px', 
+                padding: '16px', 
+                border: '1px solid #374151'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: '14px', color: '#d8b4fe' }}>
+                    #{idx + 1} {result.id.substring(0, 8)}...
+                  </span>
+                  <span style={{ color: '#4ade80', fontWeight: 'bold' }}>{result.score.toFixed(4)}</span>
+                </div>
+                <div style={{ fontSize: '14px', color: '#9ca3af' }}>
+                  <p>Catégorie: {result.metadata.category || 'N/A'}</p>
+                  <p>Source: {result.metadata.source_id || 'N/A'}</p>
+                  <p>Tags: {result.metadata.tags?.join(', ') || 'Aucun'}</p>
+                  <p>Fraîcheur: {result.freshness_score ? `${Math.round(result.freshness_score! * 100)}%` : 'N/A'}</p>
                   {result.scoring_breakdown && (
-                    <div className="mt-3 pt-3 border-t border-gray-700/50">
-                      <p className="text-xs text-purple-200 font-mono">
-                        {result.scoring_breakdown!.explanation}
-                      </p>
-                    </div>
+                    <p style={{ fontSize: '12px', color: '#e9d5ff', marginTop: '8px' }}>
+                      {result.scoring_breakdown!.explanation}
+                    </p>
                   )}
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="bg-gray-900/50 backdrop-blur rounded-xl p-6 border border-gray-800/50">
-          <h2 className="text-xl font-semibold mb-4 text-white">Métriques en Temps Réel</h2>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <defs>
-                  <linearGradient id="latencyGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                    <stop offset="100%" stopColor="#3b82f6" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="recallGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10b981" stopOpacity={0.8}/>
-                    <stop offset="100%" stopColor="#10b981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="time" stroke="#6b7280" axisLine={false} tickLine={false} />
-                <YAxis stroke="#6b7280" axisLine={false} tickLine={false} />
-                <Tooltip
-                  contentStyle={{ background: 'rgba(31, 41, 59, 0.9)', border: '1px solid #374151' }}
-                  labelStyle={{ color: '#e5e7eb' }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="latency" 
-                  stroke="#3b82f6" 
-                  strokeWidth={2} 
-                  dot={false}
-                  fill="url(#latencyGradient)"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="recall" 
-                  stroke="#10b981" 
-                  strokeWidth={2} 
-                  dot={false}
-                  fill="url(#recallGradient)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
+              </div>
+            ))}
           </div>
         </div>
-      </main>
+      )}
+
+      <div style={{ 
+        backgroundColor: 'rgba(17, 24, 39, 0.5)', 
+        borderRadius: '12px', 
+        padding: '24px', 
+        border: '1px solid #1f2937'
+      }}>
+        <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>Métriques</h2>
+        <div style={{ height: '256px' }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData}>
+              <XAxis dataKey="time" stroke="#6b7280" />
+              <YAxis stroke="#6b7280" />
+              <Tooltip />
+              <Line type="monotone" dataKey="latency" stroke="#3b82f6" strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="recall" stroke="#10b981" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
     </div>
   )
 }
 
 function MetricCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
   return (
-    <div className="bg-gray-900/50 backdrop-blur rounded-xl p-4 border border-gray-800/50 hover:border-gray-700 transition-all">
-      <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-lg bg-gray-800/50 ${color}`}>
-          {icon}
-        </div>
-        <div>
-          <p className="text-gray-400 text-sm">{label}</p>
-          <p className={`text-2xl font-bold text-white`}>{value}</p>
-        </div>
+    <div style={{ 
+      backgroundColor: '#1f2937', 
+      borderRadius: '12px', 
+      padding: '16px', 
+      border: '1px solid #374151',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px'
+    }}>
+      <div style={{ padding: '8px', backgroundColor: '#111827', borderRadius: '8px', color }}>{icon}</div>
+      <div>
+        <p style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '4px' }}>{label}</p>
+        <p style={{ fontSize: '24px', fontWeight: 'bold', color: 'white' }}>{value}</p>
       </div>
     </div>
   )
