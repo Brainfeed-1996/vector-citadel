@@ -2,18 +2,24 @@ import requests
 import json
 import argparse
 import numpy as np
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
+from pathlib import Path
+from tqdm import tqdm
 import time
 
 API_URL = "http://localhost:8080"
 
 def generate_mock_embeddings(count: int, dim: int = 1536) -> List[List[float]]:
     np.random.seed(42)
-    return [np.random.randn(dim).tolist() for _ in range(count)]
+    embeddings = []
+    for _ in range(count):
+        vec = np.random.randn(dim).astype(np.float32).tolist()
+        embeddings.append(vec)
+    return embeddings
 
 def generate_mock_metadata(count: int) -> List[Dict[str, Any]]:
     categories = ["tech", "science", "finance", "health", "news"]
-    sources = ["web", "api", "database", "file", "stream"]
+    sources = ["web-crawler", "api-ingest", "db-export", "pdf-parser", "news-api"]
     
     metadata = []
     for i in range(count):
@@ -25,41 +31,62 @@ def generate_mock_metadata(count: int) -> List[Dict[str, Any]]:
         metadata.append(meta)
     return metadata
 
-def upsert_batch(vectors: List[List[float]], metadata: List[Dict[str, Any]], dry_run: bool = False) -> None:
+def load_demo_vectors(path: str = "demo-data/demo_vectors.json") -> tuple[List[List[float]], List[Dict[str, Any]]]:
+    demo_path = Path(path)
+    if not demo_path.exists():
+        print(f"Demo file not found: {path}")
+        return [], []
+    
+    with open(demo_path) as f:
+        data = json.load(f)
+    
+    vectors = [item["values"] for item in data]
+    metadata = [item["metadata"] for item in data]
+    return vectors, metadata
+
+def upsert_batch(vectors: List[List[float]], metadata: List[Dict[str, Any]], dry_run: bool = False) -> int:
     if dry_run:
         print(f"[DRY RUN] Would upsert {len(vectors)} vectors")
-        return
+        return 0
     
-    for i, (vec, meta) in enumerate(zip(vectors, metadata)):
+    success_count = 0
+    for i, (vec, meta) in enumerate(tqdm(zip(vectors, metadata), total=len(vectors), desc="Ingesting")):
         payload = {
             "values": vec,
             "metadata": meta
         }
         try:
             r = requests.post(f"{API_URL}/vectors/upsert", json=payload, timeout=5)
-            if r.status_code != 200:
-                print(f"Error upserting vector {i}: {r.text}")
+            if r.status_code == 200:
+                success_count += 1
+            else:
+                print(f"Error upserting vector {i}: {r.status_code}")
         except Exception as e:
-            print(f"Connection error: {e}")
-        
-    print(f"Upserted {len(vectors)} vectors to {API_URL}")
+            print(f"Connection error at vector {i}: {e}")
+    
+    print(f"\nUpserted {success_count}/{len(vectors)} vectors to {API_URL}")
+    return success_count
 
 def main():
     parser = argparse.ArgumentParser(description="Vector Citadel Ingestion CLI")
-    parser.add_argument("--count", type=int, default=100, help="Number of vectors to generate")
+    parser.add_argument("--count", type=int, default=0, help="Number of vectors to generate")
     parser.add_argument("--dim", type=int, default=1536, help="Embedding dimension")
     parser.add_argument("--dry-run", action="store_true", help="Dry run mode")
-    parser.add_argument("--demo", action="store_true", help="Load demo data")
+    parser.add_argument("--demo", action="store_true", help="Load demo data from demo-data/demo_vectors.json")
     
     args = parser.parse_args()
     
-    embeddings = generate_mock_embeddings(args.count, args.dim)
-    metadata = generate_mock_metadata(args.count)
+    if args.demo:
+        vectors, metadata = load_demo_vectors()
+        if vectors:
+            upsert_batch(vectors, metadata, args.dry_run)
+            return
+    
+    count = args.count or 100
+    embeddings = generate_mock_embeddings(count, args.dim)
+    metadata = generate_mock_metadata(count)
     
     upsert_batch(embeddings, metadata, args.dry_run)
-    
-    if args.demo:
-        print(f"Loaded demo data: {args.count} vectors of dimension {args.dim}")
 
 if __name__ == "__main__":
     main()
